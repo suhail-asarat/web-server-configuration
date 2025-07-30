@@ -60,5 +60,4 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
           port: 22
-          script: |
-            sudo chown -R docs:docs /home/docs/public_html
+          script: chown -R docs:docs /home/docs/public_html
