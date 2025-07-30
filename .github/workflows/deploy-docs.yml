@@ -1,0 +1,32 @@
+name: Build & Deploy Docs
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+      - name: Install dependencies
+        run: |
+          pip install sphinx sphinx_rtd_theme myst_parser
+          sudo apt-get update
+          sudo apt-get install -y texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended
+      - name: Build HTML
+        run: sphinx-build -b html docs/source/ docs/build/html/
+      - name: Build PDF (LaTeX)
+        run: sphinx-build -b latex docs/source/ docs/build/latex/ && \
+             make -C docs/build/latex/ all-pdf
+      - name: Build EPUB
+        run: sphinx-build -b epub docs/source/ docs/build/epub/
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v0.1.9
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          source: |
+            docs/build/html/
+            docs/build/latex/*.pdf
+            docs/build/epub/*.epub
+          target: "/home/docs/public_html/"
+          rsync_options: --delete
