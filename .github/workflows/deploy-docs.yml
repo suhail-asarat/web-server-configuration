@@ -1,40 +1,34 @@
 name: Build & Deploy Docs
 on: push
+
 jobs:
-  build:
+  build-deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
-      - name: Install dependencies
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential \
+            texlive-latex-recommended \
+            texlive-latex-extra \
+            texlive-fonts-recommended \
+            latexmk
+
+      - name: Install Python packages
         run: |
           python -m pip install --upgrade pip
           pip install sphinx sphinx_rtd_theme myst_parser
-          sudo apt-get update
-          sudo apt-get install -y build-essential \
-                                 texlive-latex-recommended \
-                                 texlive-latex-extra \
-                                 texlive-fonts-recommended
-                                 
-      - name: Install LaTeX and latexmk
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential \
-                            texlive-latex-recommended \
-                            texlive-latex-extra \
-                            texlive-fonts-recommended \
-                            latexmk
 
       - name: Build HTML
-        # either:
         run: sphinx-build -b html docs/source/ docs/build/html/
-        # or:
-        # run: python -m sphinx.cmd.build -b html docs/source/ docs/build/html/
 
-      - name: Build PDF
+      - name: Build PDF (via LaTeX)
         run: |
           sphinx-build -b latex docs/source/ docs/build/latex/
           make -C docs/build/latex/ all-pdf
@@ -42,16 +36,25 @@ jobs:
       - name: Build EPUB
         run: sphinx-build -b epub docs/source/ docs/build/epub/
 
-      - name: Deploy via SSH
+      - name: Deploy docs via SCP
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: 22
+          source: |
+            docs/build/html/*
+            docs/build/latex/*.pdf
+            docs/build/epub/*.epub
+          target: /home/docs/public_html/
+
+      - name: Post‑deploy cleanup (optional)
         uses: appleboy/ssh-action@v0.1.9
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
-          source: |
-            docs/build/html/
-            docs/build/latex/*.pdf
-            docs/build/epub/*.epub
-          target: "/home/docs/public_html/"
-          rsync_options: --delete
-          
+          port: 22
+          script: |
+            sudo chown -R docs:docs /home/docs/public_html
