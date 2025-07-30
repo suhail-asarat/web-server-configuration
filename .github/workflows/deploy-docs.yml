@@ -48,10 +48,7 @@ jobs:
             username: ${{ secrets.SERVER_USER }}
             key: ${{ secrets.SERVER_SSH_KEY }}
             port: 22
-            source: >
-              docs/build/html/*
-              docs/build/latex/*.pdf
-              docs/build/epub/*.epub
+            source: "docs/build/html/*,docs/build/latex/*.pdf,docs/build/epub/*.epub"
             target: /home/docs/public_html/
 
       - name: Post‑deploy cleanup (optional)
