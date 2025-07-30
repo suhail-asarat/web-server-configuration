@@ -6,23 +6,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
 
-      - name: Install system dependencies
+      - name: Install dependencies
         run: |
+          python -m pip install --upgrade pip
+          pip install sphinx sphinx_rtd_theme myst_parser
           sudo apt-get update
           sudo apt-get install -y build-essential \
                                  texlive-latex-recommended \
                                  texlive-latex-extra \
                                  texlive-fonts-recommended
 
-      - name: Install Python packages
-        run: |
-          python3 -m venv venv
-          source venv/bin/activate
-          pip install sphinx sphinx_rtd_theme myst_parser
-
       - name: Build HTML
+        # either:
         run: sphinx-build -b html docs/source/ docs/build/html/
+        # or:
+        # run: python -m sphinx.cmd.build -b html docs/source/ docs/build/html/
 
       - name: Build PDF
         run: |
@@ -44,3 +45,4 @@ jobs:
             docs/build/epub/*.epub
           target: "/home/docs/public_html/"
           rsync_options: --delete
+          
