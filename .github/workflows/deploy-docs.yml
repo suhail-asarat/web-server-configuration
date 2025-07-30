@@ -18,6 +18,15 @@ jobs:
                                  texlive-latex-recommended \
                                  texlive-latex-extra \
                                  texlive-fonts-recommended
+                                 
+      - name: Install LaTeX and latexmk
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential \
+                            texlive-latex-recommended \
+                            texlive-latex-extra \
+                            texlive-fonts-recommended \
+                            latexmk
 
       - name: Build HTML
         # either:
