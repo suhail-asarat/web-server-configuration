@@ -6,18 +6,32 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-      - name: Install dependencies
+
+      - name: Install system dependencies
         run: |
-          pip install sphinx sphinx_rtd_theme myst_parser
           sudo apt-get update
-          sudo apt-get install -y texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended
+          sudo apt-get install -y build-essential \
+                                 texlive-latex-recommended \
+                                 texlive-latex-extra \
+                                 texlive-fonts-recommended
+
+      - name: Install Python packages
+        run: |
+          python3 -m venv venv
+          source venv/bin/activate
+          pip install sphinx sphinx_rtd_theme myst_parser
+
       - name: Build HTML
         run: sphinx-build -b html docs/source/ docs/build/html/
-      - name: Build PDF (LaTeX)
-        run: sphinx-build -b latex docs/source/ docs/build/latex/ && \
-             make -C docs/build/latex/ all-pdf
+
+      - name: Build PDF
+        run: |
+          sphinx-build -b latex docs/source/ docs/build/latex/
+          make -C docs/build/latex/ all-pdf
+
       - name: Build EPUB
         run: sphinx-build -b epub docs/source/ docs/build/epub/
+
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v0.1.9
         with:
