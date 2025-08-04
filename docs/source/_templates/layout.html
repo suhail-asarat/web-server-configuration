@@ -1,7 +1,16 @@
+{% extends "!layout.html" %}
+
+{%- block extrahead %}
+<!-- Required by the addons JS code -->
+<meta name="readthedocs-addons-api-version" content="1">
+{{ super() }}
+{%- endblock %}
+
 <head>
   <meta name="readthedocs-addons-api-version" content="1" />
   {{ super() }}
 </head>
+
 <body>
   {{ body }}
   <readthedocs-flyout position="bottom-right"></readthedocs-flyout>
